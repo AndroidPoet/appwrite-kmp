@@ -1,6 +1,12 @@
-# Appwrite KMP SDK
+<p align="center">
+  <img src="art/logo.jpeg" alt="Appwrite KMP SDK" width="80%" />
+</p>
 
-A Kotlin Multiplatform SDK for [Appwrite](https://appwrite.io) — built from scratch with type safety, coroutines, and multiplatform support at its core.
+<h1 align="center">Appwrite KMP SDK</h1>
+
+<p align="center">
+A Kotlin Multiplatform SDK for <a href="https://appwrite.io">Appwrite</a> — built from scratch with type safety, coroutines, and multiplatform support at its core.
+</p>
 
 > **Targets:** Android, iOS, JVM
 

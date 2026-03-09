@@ -21,17 +21,17 @@ The official Appwrite Android SDK is tightly coupled to Android (OkHttp, Gson, S
 // build.gradle.kts
 dependencies {
     // Core (required)
-    implementation("io.appwrite:appwrite-client:<version>")
+    implementation("io.github.androidpoet:appwrite-client:<version>")
 
     // Pick the services you need
-    implementation("io.appwrite:appwrite-auth:<version>")
-    implementation("io.appwrite:appwrite-database:<version>")
-    implementation("io.appwrite:appwrite-storage:<version>")
-    implementation("io.appwrite:appwrite-realtime:<version>")
-    implementation("io.appwrite:appwrite-teams:<version>")
-    implementation("io.appwrite:appwrite-functions:<version>")
-    implementation("io.appwrite:appwrite-locale:<version>")
-    implementation("io.appwrite:appwrite-avatars:<version>")
+    implementation("io.github.androidpoet:appwrite-auth:<version>")
+    implementation("io.github.androidpoet:appwrite-database:<version>")
+    implementation("io.github.androidpoet:appwrite-storage:<version>")
+    implementation("io.github.androidpoet:appwrite-realtime:<version>")
+    implementation("io.github.androidpoet:appwrite-teams:<version>")
+    implementation("io.github.androidpoet:appwrite-functions:<version>")
+    implementation("io.github.androidpoet:appwrite-locale:<version>")
+    implementation("io.github.androidpoet:appwrite-avatars:<version>")
 }
 ```
 

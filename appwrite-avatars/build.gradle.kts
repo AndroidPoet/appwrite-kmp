@@ -1,6 +1,24 @@
+import io.androidpoet.appwrite.Configuration
+
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.kotlinSerialization)
+    alias(libs.plugins.nexusPlugin)
+}
+
+apply(from = "$rootDir/scripts/publish-module.gradle.kts")
+
+mavenPublishing {
+    val artifactId = "appwrite-avatars"
+    coordinates(
+        Configuration.artifactGroup,
+        artifactId,
+        rootProject.extra.get("libVersion").toString(),
+    )
+    pom {
+        name.set(artifactId)
+        description.set("Appwrite KMP SDK avatars — browser icons, flags, initials, QR codes")
+    }
 }
 
 kotlin {

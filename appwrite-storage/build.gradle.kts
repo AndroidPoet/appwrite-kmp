@@ -1,6 +1,24 @@
+import io.androidpoet.appwrite.Configuration
+
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.kotlinSerialization)
+    alias(libs.plugins.nexusPlugin)
+}
+
+apply(from = "$rootDir/scripts/publish-module.gradle.kts")
+
+mavenPublishing {
+    val artifactId = "appwrite-storage"
+    coordinates(
+        Configuration.artifactGroup,
+        artifactId,
+        rootProject.extra.get("libVersion").toString(),
+    )
+    pom {
+        name.set(artifactId)
+        description.set("Appwrite KMP SDK storage — chunked file uploads with Flow, download, preview transforms")
+    }
 }
 
 kotlin {

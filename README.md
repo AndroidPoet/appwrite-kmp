@@ -24,12 +24,9 @@ The official Appwrite Android SDK is tightly coupled to Android (OkHttp, Gson, S
 ## Installation
 
 ```kotlin
-// build.gradle.kts
 dependencies {
-    // Core (required)
     implementation("io.github.androidpoet:appwrite-client:<version>")
 
-    // Pick the services you need
     implementation("io.github.androidpoet:appwrite-auth:<version>")
     implementation("io.github.androidpoet:appwrite-database:<version>")
     implementation("io.github.androidpoet:appwrite-storage:<version>")
@@ -47,10 +44,9 @@ dependencies {
 
 ```kotlin
 val appwrite = Appwrite("your-project-id") {
-    endpoint = "https://cloud.appwrite.io/v1"  // or your self-hosted instance
+    endpoint = "https://cloud.appwrite.io/v1"
 }
 
-// Optional: persist sessions across app restarts
 appwrite.sessionStore = SessionStore()
 ```
 
@@ -59,25 +55,21 @@ appwrite.sessionStore = SessionStore()
 ```kotlin
 import io.appwrite.auth.auth
 
-// Sign up
 val user = appwrite.auth.signUp(
     email = "user@example.com",
     password = "password123",
     name = "Jane Doe",
 )
 
-// Sign in
 when (val result = appwrite.auth.signInWithEmail("user@example.com", "password123")) {
     is AppwriteResult.Success -> println("Session: ${result.data.id}")
     is AppwriteResult.Failure -> println("Error: ${result.error.message}")
 }
 
-// MFA
 appwrite.auth.mfa.enable()
 appwrite.auth.mfa.createAuthenticator(AuthenticationFactor.Totp)
 appwrite.auth.mfa.verifyAuthenticator(AuthenticationFactor.Totp, otp = "123456")
 
-// Sign out
 appwrite.auth.signOut()
 ```
 
@@ -88,15 +80,12 @@ import io.appwrite.database.databases
 
 val db = appwrite.databases
 
-// Scoped access
 val users = db[DatabaseId("main")][CollectionId("users")]
 
-// Create
 users.create(
     data = mapOf("name" to "Jane", "age" to 28, "status" to "active"),
 )
 
-// Query with DSL
 val result = users.list {
     where("age" greaterThan 18)
     where("status" equal "active")
@@ -104,7 +93,6 @@ val result = users.list {
     limit(25)
 }
 
-// Update
 users.update(
     documentId = DocumentId("abc123"),
     data = mapOf("status" to "inactive"),
@@ -116,7 +104,6 @@ users.update(
 ```kotlin
 import io.appwrite.storage.storage
 
-// Upload with progress tracking
 val file = InputFile.fromBytes(imageBytes, "photo.jpg", "image/jpeg")
 
 appwrite.storage.upload(BucketId("photos"), FileId.unique(), file)
@@ -128,10 +115,8 @@ appwrite.storage.upload(BucketId("photos"), FileId.unique(), file)
         }
     }
 
-// Download
 val bytes = appwrite.storage.download(BucketId("photos"), FileId("abc123"))
 
-// Preview with transforms
 val thumbnail = appwrite.storage.preview(BucketId("photos"), FileId("abc123")) {
     width = 200
     height = 200
@@ -145,13 +130,11 @@ val thumbnail = appwrite.storage.preview(BucketId("photos"), FileId("abc123")) {
 ```kotlin
 import io.appwrite.realtime.realtime
 
-// Subscribe to document changes — cold Flow, auto-reconnects
 appwrite.realtime
     .documents(DatabaseId("main"), CollectionId("messages"))
     .onEach { event -> updateUI(event.payload) }
     .launchIn(viewModelScope) // auto-cleanup on scope cancellation
 
-// Subscribe to account events
 appwrite.realtime.account()
     .collect { event -> handleAccountEvent(event) }
 ```
@@ -161,10 +144,8 @@ appwrite.realtime.account()
 ```kotlin
 import io.appwrite.teams.teams
 
-// Create team
 appwrite.teams.create(TeamId.unique(), name = "Engineering")
 
-// Invite member
 appwrite.teams.createMembership(
     teamId = TeamId("eng-team"),
     roles = listOf("developer"),
@@ -177,7 +158,6 @@ appwrite.teams.createMembership(
 ```kotlin
 import io.appwrite.functions.functions
 
-// Execute a serverless function
 val execution = appwrite.functions.createExecution(
     functionId = FunctionId("send-welcome-email"),
     body = """{"userId": "abc123"}""",
@@ -227,14 +207,11 @@ sealed interface AppwriteResult<out T> {
 
 **Value class IDs prevent string mix-ups**
 ```kotlin
-// Compiler catches this — DatabaseId and CollectionId are different types
 fun getDocument(databaseId: DatabaseId, collectionId: CollectionId, documentId: DocumentId)
 ```
 
 **Session persistence is opt-in and platform-aware**
 ```kotlin
-// JVM: java.util.prefs.Preferences
-// iOS: NSUserDefaults
 appwrite.sessionStore = SessionStore()
 ```
 

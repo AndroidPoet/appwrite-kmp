@@ -1,5 +1,6 @@
 package io.appwrite.core.result
 
+import kotlinx.coroutines.CancellationException
 import kotlinx.serialization.Serializable
 
 /**
@@ -45,7 +46,8 @@ sealed interface AppwriteResult<out T> {
             Success(block())
         } catch (e: AppwriteException) {
             Failure(e.error)
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
+            if (e is CancellationException) throw e
             Failure(
                 AppwriteError(
                     message = e.message ?: "Unknown error",
@@ -90,6 +92,28 @@ inline fun <T> AppwriteResult<T>.onFailure(action: (AppwriteError) -> Unit): App
     if (this is AppwriteResult.Failure) action(error)
     return this
 }
+
+fun <T> AppwriteResult<T>.toKotlinResult(): Result<T> = when (this) {
+    is AppwriteResult.Success -> Result.success(data)
+    is AppwriteResult.Failure -> Result.failure(AppwriteException(error))
+}
+
+inline fun <T> Result<T>.toAppwriteResult(
+    mapThrowable: (Throwable) -> AppwriteError = { throwable ->
+        val appwriteException = throwable as? AppwriteException
+        appwriteException?.error ?: AppwriteError(
+            message = throwable.message ?: "Unknown error",
+            code = 0,
+            type = "unknown",
+        )
+    },
+): AppwriteResult<T> = fold(
+    onSuccess = { AppwriteResult.Success(it) },
+    onFailure = { throwable ->
+        if (throwable is CancellationException) throw throwable
+        AppwriteResult.Failure(mapThrowable(throwable))
+    },
+)
 
 @Serializable
 data class AppwriteError(

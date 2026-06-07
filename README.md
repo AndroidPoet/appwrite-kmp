@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="art/logo.jpeg" alt="Appwrite KMP SDK" width="80%" />
+  <img src="art/logo.svg" width="800" alt="Appwrite KMP">
 </p>
 
 <h1 align="center">Appwrite KMP SDK</h1>
@@ -65,6 +65,9 @@ when (val result = appwrite.auth.signInWithEmail("user@example.com", "password12
     is AppwriteResult.Success -> println("Session: ${result.data.id}")
     is AppwriteResult.Failure -> println("Error: ${result.error.message}")
 }
+
+val kotlinResult = appwrite.auth.signInWithEmail("user@example.com", "password123").toKotlinResult()
+val sdkResult = kotlinResult.toAppwriteResult()
 
 appwrite.auth.mfa.enable()
 appwrite.auth.mfa.createAuthenticator(AuthenticationFactor.Totp)

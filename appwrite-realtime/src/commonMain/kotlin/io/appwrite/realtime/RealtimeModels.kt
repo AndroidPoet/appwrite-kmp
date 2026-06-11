@@ -51,3 +51,12 @@ internal data class RealtimeErrorData(
     val code: Int = 0,
     val message: String = "",
 )
+
+/**
+ * Thrown into a realtime [Flow] when the server emits a `"type":"error"`
+ * message (for example an invalid channel or an unauthorized subscription).
+ */
+public class RealtimeException(
+    public val code: Int,
+    message: String,
+) : Exception(message)

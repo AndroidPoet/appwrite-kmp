@@ -27,6 +27,12 @@ kotlin {
     iosArm64()
     iosSimulatorArm64()
 
+    @OptIn(org.jetbrains.kotlin.gradle.ExperimentalWasmDsl::class)
+    wasmJs {
+        browser()
+        nodejs()
+    }
+
     sourceSets {
         commonMain.dependencies {
             api(project(":appwrite-core"))
@@ -35,6 +41,15 @@ kotlin {
             implementation(libs.ktor.client.websockets)
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.kotlinx.serialization.json)
+        }
+        jvmMain.dependencies {
+            implementation(libs.ktor.client.okhttp)
+        }
+        iosMain.dependencies {
+            implementation(libs.ktor.client.darwin)
+        }
+        wasmJsMain.dependencies {
+            implementation(libs.ktor.client.js)
         }
         commonTest.dependencies {
             implementation(kotlin("test"))

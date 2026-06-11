@@ -27,6 +27,12 @@ kotlin {
     iosArm64()
     iosSimulatorArm64()
 
+    @OptIn(org.jetbrains.kotlin.gradle.ExperimentalWasmDsl::class)
+    wasmJs {
+        browser()
+        nodejs()
+    }
+
     sourceSets {
         commonMain.dependencies {
             implementation(libs.kotlinx.serialization.json)

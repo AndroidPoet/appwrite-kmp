@@ -61,9 +61,10 @@ class Realtime(private val appwrite: Appwrite) {
         val wsUrl = buildWsUrl(channels.toList())
 
         var backoff = INITIAL_BACKOFF_MS
+        var fatal: RealtimeException? = null
 
         try {
-            while (isActive) {
+            while (isActive && fatal == null) {
                 try {
                     client.webSocket(wsUrl) {
                         // Connection succeeded — reset back-off.
@@ -85,6 +86,11 @@ class Realtime(private val appwrite: Appwrite) {
                                     }
                                 }
                             }
+                        } catch (e: RealtimeException) {
+                            // Server-reported error (bad channel, unauthorized) —
+                            // surface to the collector and stop reconnecting.
+                            fatal = e
+                            return@webSocket
                         } finally {
                             heartbeat.cancel()
                         }
@@ -96,13 +102,16 @@ class Realtime(private val appwrite: Appwrite) {
                     // Connection failed or dropped — back off and retry.
                 }
 
-                if (!isActive) break
+                if (!isActive || fatal != null) break
                 delay(backoff)
                 backoff = (backoff * 2).coerceAtMost(MAX_BACKOFF_MS)
             }
         } finally {
             client.close()
         }
+
+        // Close the flow: surface a server error, or complete normally on cancel.
+        close(fatal)
 
         awaitClose { client.close() }
     }
@@ -111,20 +120,26 @@ class Realtime(private val appwrite: Appwrite) {
     fun documents(
         databaseId: DatabaseId,
         collectionId: CollectionId,
-    ): Flow<RealtimeEvent> = subscribe(
-        "databases.${databaseId.raw}.collections.${collectionId.raw}.documents"
-    )
+    ): Flow<RealtimeEvent> = subscribe(RealtimeChannels.documents(databaseId, collectionId))
 
     /** Subscribe to account-level events (session changes, preferences, etc.). */
-    fun account(): Flow<RealtimeEvent> = subscribe("account")
+    fun account(): Flow<RealtimeEvent> = subscribe(RealtimeChannels.ACCOUNT)
 
     /** Subscribe to file events in a storage bucket. */
     fun files(bucketId: BucketId): Flow<RealtimeEvent> =
-        subscribe("buckets.${bucketId.raw}.files")
+        subscribe(RealtimeChannels.files(bucketId))
 
     /** Subscribe to file events in a storage bucket (string overload). */
     fun files(bucketId: String): Flow<RealtimeEvent> =
         subscribe("buckets.$bucketId.files")
+
+    /** Subscribe to events for a single team. */
+    fun team(teamId: io.appwrite.core.types.TeamId): Flow<RealtimeEvent> =
+        subscribe(RealtimeChannels.team(teamId))
+
+    /** Subscribe to execution events for a single function. */
+    fun executions(functionId: io.appwrite.core.types.FunctionId): Flow<RealtimeEvent> =
+        subscribe(RealtimeChannels.executions(functionId))
 
     // ── Internals ────────────────────────────────────────────────────
 
@@ -151,13 +166,32 @@ class Realtime(private val appwrite: Appwrite) {
 
     /**
      * Parse a text frame and return a [RealtimeEvent] if the message
-     * is of type `"event"`, or `null` for control messages.
+     * is of type `"event"`, or `null` for connection/heartbeat control
+     * messages. Throws [RealtimeException] for `"error"` messages.
      */
     private fun handleFrame(text: String): RealtimeEvent? {
-        val message = json.decodeFromString<RealtimeMessage>(text)
+        val message = try {
+            json.decodeFromString<RealtimeMessage>(text)
+        } catch (_: Exception) {
+            // Unrecognised payload — ignore rather than tear down the stream.
+            return null
+        }
         return when (message.type) {
-            "event" -> json.decodeFromString<RealtimeEvent>(message.data.toString())
-            else -> null // "connected", "pong", "error" — not surfaced to subscribers
+            "event" -> runCatching {
+                json.decodeFromString(RealtimeEvent.serializer(), message.data.toString())
+            }.getOrNull()
+
+            "error" -> {
+                val error = runCatching {
+                    json.decodeFromString(RealtimeErrorData.serializer(), message.data.toString())
+                }.getOrNull()
+                throw RealtimeException(
+                    code = error?.code ?: 0,
+                    message = error?.message ?: "Realtime connection error",
+                )
+            }
+
+            else -> null // "connected", "pong", "response" — not surfaced to subscribers
         }
     }
 

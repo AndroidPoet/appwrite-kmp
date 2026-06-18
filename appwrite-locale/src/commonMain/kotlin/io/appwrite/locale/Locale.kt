@@ -6,7 +6,6 @@ import io.appwrite.core.models.ContinentList
 import io.appwrite.core.models.CountryList
 import io.appwrite.core.models.CurrencyList
 import io.appwrite.core.models.LanguageList
-import io.appwrite.core.models.LocaleCode
 import io.appwrite.core.models.LocaleCodeList
 import io.appwrite.core.models.LocaleData
 import io.appwrite.core.models.PhoneList
@@ -26,8 +25,9 @@ import io.appwrite.core.result.AppwriteResult
  * locale.listCountries()
  * ```
  */
-class Locale(appwrite: Appwrite) : ServiceBase(appwrite.transport) {
-
+class Locale(
+    appwrite: Appwrite,
+) : ServiceBase(appwrite.transport) {
     suspend fun get(): AppwriteResult<LocaleData> =
         get(path = "/locale")
 

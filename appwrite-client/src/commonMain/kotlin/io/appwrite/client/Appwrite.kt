@@ -23,9 +23,10 @@ class Appwrite(
     projectId: String,
     configure: AppwriteConfigBuilder.() -> Unit = {},
 ) {
-    val config: AppwriteConfig = AppwriteConfigBuilder()
-        .apply(configure)
-        .build(ProjectId(projectId))
+    val config: AppwriteConfig =
+        AppwriteConfigBuilder()
+            .apply(configure)
+            .build(ProjectId(projectId))
 
     val transport = HttpTransport(config)
 

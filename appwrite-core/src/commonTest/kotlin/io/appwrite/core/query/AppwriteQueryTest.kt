@@ -8,7 +8,6 @@ import kotlin.test.assertEquals
  * format, matching the Appwrite Web/JS SDK byte-for-byte.
  */
 class AppwriteQueryTest {
-
     @Test
     fun equal_singleString_wrapsInValuesArray() {
         assertEquals(
@@ -139,12 +138,13 @@ class AppwriteQueryTest {
 
     @Test
     fun or_nestsEncodedQueries() {
-        val encoded = Query.or(
-            listOf(
-                Query.equal("status", "active"),
-                Query.equal("status", "pending"),
-            ),
-        )
+        val encoded =
+            Query.or(
+                listOf(
+                    Query.equal("status", "active"),
+                    Query.equal("status", "pending"),
+                ),
+            )
         assertEquals(
             """{"method":"or","values":[{"method":"equal","attribute":"status","values":["active"]},{"method":"equal","attribute":"status","values":["pending"]}]}""",
             encoded,
@@ -153,12 +153,13 @@ class AppwriteQueryTest {
 
     @Test
     fun and_nestsEncodedQueries() {
-        val encoded = Query.and(
-            listOf(
-                Query.greaterThan("age", 18),
-                Query.lessThan("age", 65),
-            ),
-        )
+        val encoded =
+            Query.and(
+                listOf(
+                    Query.greaterThan("age", 18),
+                    Query.lessThan("age", 65),
+                ),
+            )
         assertEquals(
             """{"method":"and","values":[{"method":"greaterThan","attribute":"age","values":[18]},{"method":"lessThan","attribute":"age","values":[65]}]}""",
             encoded,

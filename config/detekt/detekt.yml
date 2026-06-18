@@ -1,0 +1,74 @@
+build:
+  maxIssues: 0
+  excludeCorrectable: false
+
+config:
+  validation: true
+  warningsAsErrors: false
+
+style:
+  MagicNumber:
+    active: false
+  ReturnCount:
+    max: 6
+  MaxLineLength:
+    # ktlint (ktlint_official) owns wrapping; its continuation indent can push a
+    # handful of unbreakable lines (string templates, URLs) a few chars past 140.
+    maxLineLength: 150
+    # Test fixtures pin exact encoded-query JSON on one line; wrapping a literal
+    # assertion only obscures it.
+    excludes: ['**/test/**', '**/commonTest/**', '**/*Test.kt']
+  UnusedPrivateMember:
+    active: true
+  ForbiddenComment:
+    active: false
+  FunctionOnlyReturningConstant:
+    # Role/Permission helpers expose constant accessors (any(), guests()) for
+    # API parity with their parameterised siblings; they read as functions, not
+    # constants, at the call site.
+    active: false
+  UnusedParameter:
+    # Kotlin/Wasm `js(...)` external shims reference their parameters only
+    # inside the JS string body, which detekt can't see — silencing avoids
+    # false positives on the wasmJs SessionStore interop.
+    active: false
+
+naming:
+  FunctionNaming:
+    active: true
+  MatchingDeclarationName:
+    # A few files (AppwriteQuery.kt holding `object Query`) keep an
+    # Appwrite-prefixed filename whose short type name is already taken by a
+    # sibling file.
+    active: false
+
+complexity:
+  LongParameterList:
+    # Service APIs intentionally expose many named, defaulted parameters
+    # (Appwrite endpoints take long, optional argument lists) rather than
+    # forcing callers to assemble option objects.
+    functionThreshold: 12
+    constructorThreshold: 14
+    ignoreDefaultParameters: true
+  LongMethod:
+    # ktlint (ktlint_official) expands single-line builder calls onto multiple
+    # lines via trailing commas, so a few wide bodies land just over 80.
+    threshold: 100
+  LargeClass:
+    excludes: ['**/test/**', '**/commonTest/**', '**/*Test.kt']
+  TooManyFunctions:
+    active: false
+  CyclomaticComplexMethod:
+    threshold: 20
+
+exceptions:
+  TooGenericExceptionCaught:
+    active: false
+  TooGenericExceptionThrown:
+    # commonTest intentionally throws RuntimeException to exercise
+    # AppwriteResult.catching's generic-exception fallback.
+    active: false
+  SwallowedException:
+    active: false
+  ThrowingExceptionsWithoutMessageOrCause:
+    active: false

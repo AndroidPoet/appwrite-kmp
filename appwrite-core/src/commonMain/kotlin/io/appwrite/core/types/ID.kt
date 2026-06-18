@@ -15,7 +15,6 @@ import kotlin.random.Random
  * a 5-character hex millisecond component, and [padding] random hex characters.
  */
 public object ID {
-
     /** Returns [id] unchanged — use for caller-supplied identifiers. */
     public fun custom(id: String): String = id
 
@@ -32,11 +31,12 @@ public object ID {
         // 5-character zero-padded hex of the millisecond component.
         val msHex = millis.toString(16).padStart(5, '0')
 
-        val random = buildString {
-            repeat(padding) {
-                append(HEX[Random.nextInt(16)])
+        val random =
+            buildString {
+                repeat(padding) {
+                    append(HEX[Random.nextInt(16)])
+                }
             }
-        }
         return baseId + msHex + random
     }
 

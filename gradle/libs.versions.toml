@@ -6,6 +6,10 @@ kotlinx-serialization = "1.8.0"
 kotlinx-datetime = "0.6.2"
 agp = "8.7.3"
 nexusPlugin = "0.30.0"
+detekt = "1.23.7"
+kover = "0.8.3"
+spotless = "8.6.0"
+ktlint = "1.5.0"
 
 [libraries]
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
@@ -26,3 +30,6 @@ kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref =
 kotlinSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 androidLibrary = { id = "com.android.library", version.ref = "agp" }
 nexusPlugin = { id = "com.vanniktech.maven.publish", version.ref = "nexusPlugin" }
+detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
+kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
+spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }

@@ -20,7 +20,6 @@ import io.appwrite.core.types.TeamId
  * https://appwrite.io/docs/apis/realtime/channels.
  */
 public object RealtimeChannels {
-
     /** All account-scoped events for the current session. */
     public const val ACCOUNT: String = "account"
 

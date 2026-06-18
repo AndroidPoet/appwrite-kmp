@@ -17,7 +17,9 @@ actual class SessionStore actual constructor() {
     }
 
     actual fun clear() {
-        defaults.dictionaryRepresentation().keys
+        defaults
+            .dictionaryRepresentation()
+            .keys
             .filterIsInstance<String>()
             .filter { it.startsWith(prefix) }
             .forEach { defaults.removeObjectForKey(it) }

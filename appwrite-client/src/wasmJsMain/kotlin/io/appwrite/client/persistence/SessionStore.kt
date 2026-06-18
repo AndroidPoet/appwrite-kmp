@@ -21,11 +21,12 @@ actual class SessionStore actual constructor() {
 
     actual fun clear() {
         val count = lsLength()
-        val keys = buildList {
-            for (i in 0 until count) {
-                lsKey(i)?.let { add(it) }
+        val keys =
+            buildList {
+                for (i in 0 until count) {
+                    lsKey(i)?.let { add(it) }
+                }
             }
-        }
         keys.filter { it.startsWith(prefix) }.forEach { lsRemove(it) }
     }
 }

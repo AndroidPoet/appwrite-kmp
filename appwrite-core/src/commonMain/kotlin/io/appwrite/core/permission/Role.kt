@@ -18,7 +18,6 @@ package io.appwrite.core.permission
  * ```
  */
 public object Role {
-
     /** Grants access to anyone. */
     public fun any(): String = "any"
 

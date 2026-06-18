@@ -1,0 +1,53 @@
+---
+title: Platforms
+description: Targets Appwrite KMP supports and the per-platform pieces you should know about.
+---
+
+import { Callout } from 'nextra/components'
+
+# Platforms
+
+Appwrite KMP is a Kotlin Multiplatform library. You write against the shared API in
+`commonMain`; each target supplies its own HTTP engine and session storage under the hood.
+
+## Supported targets
+
+| Target | HTTP engine | Session storage |
+| --- | --- | --- |
+| Android | OkHttp | platform-provided store |
+| iOS (arm64, x64, simulator arm64) | Darwin | platform-provided store |
+| JVM / Desktop | OkHttp | file-backed store |
+| Wasm (browser) | JS fetch | `window.localStorage` |
+
+The networking layer is built on [Ktor](https://ktor.io); the right engine is selected per
+target via `expect`/`actual`, so no per-platform wiring is needed in app code.
+
+## Session storage
+
+Sessions are held in memory by default. Assign a platform `SessionStore` to persist them
+across restarts:
+
+```kotlin
+appwrite.sessionStore = SessionStore()
+```
+
+- **Wasm** persists to `window.localStorage` under an `io.appwrite.session.` prefix.
+- **JVM** persists to a local file.
+- **iOS** persists via the platform secure store.
+
+<Callout type="info">
+  Session storage is pluggable. If you need a custom backend (e.g. encrypted preferences),
+  implement the `SessionStore` contract and assign your instance to `appwrite.sessionStore`.
+</Callout>
+
+## Self-hosted instances
+
+Point the client at any Appwrite server by overriding the endpoint, and allow self-signed
+certificates for local development:
+
+```kotlin
+val appwrite = Appwrite("my-project-id") {
+    endpoint = "https://appwrite.internal/v1"
+    selfSigned = true
+}
+```

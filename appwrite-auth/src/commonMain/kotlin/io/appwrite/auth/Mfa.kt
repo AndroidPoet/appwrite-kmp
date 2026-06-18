@@ -2,7 +2,12 @@ package io.appwrite.auth
 
 import io.appwrite.client.Appwrite
 import io.appwrite.client.ServiceBase
-import io.appwrite.core.models.*
+import io.appwrite.core.models.AuthenticationFactor
+import io.appwrite.core.models.MfaChallenge
+import io.appwrite.core.models.MfaFactors
+import io.appwrite.core.models.MfaRecoveryCodes
+import io.appwrite.core.models.Session
+import io.appwrite.core.models.User
 import io.appwrite.core.result.AppwriteResult
 
 /**
@@ -24,8 +29,9 @@ import io.appwrite.core.result.AppwriteResult
  * auth.mfa.verifyChallenge(challenge.data.id, otp = "123456")
  * ```
  */
-class Mfa(appwrite: Appwrite) : ServiceBase(appwrite.transport) {
-
+class Mfa(
+    appwrite: Appwrite,
+) : ServiceBase(appwrite.transport) {
     suspend fun enable(): AppwriteResult<User> =
         patch(path = "/account/mfa", params = mapOf("mfa" to true))
 
@@ -37,38 +43,43 @@ class Mfa(appwrite: Appwrite) : ServiceBase(appwrite.transport) {
 
     suspend fun createAuthenticator(
         type: AuthenticationFactor = AuthenticationFactor.Totp,
-    ): AppwriteResult<MfaChallenge> = post(
-        path = "/account/mfa/authenticators/${type.value}",
-    )
+    ): AppwriteResult<MfaChallenge> =
+        post(
+            path = "/account/mfa/authenticators/${type.value}",
+        )
 
     suspend fun verifyAuthenticator(
         type: AuthenticationFactor = AuthenticationFactor.Totp,
         otp: String,
-    ): AppwriteResult<User> = put(
-        path = "/account/mfa/authenticators/${type.value}",
-        params = mapOf("otp" to otp),
-    )
+    ): AppwriteResult<User> =
+        put(
+            path = "/account/mfa/authenticators/${type.value}",
+            params = mapOf("otp" to otp),
+        )
 
     suspend fun deleteAuthenticator(
         type: AuthenticationFactor = AuthenticationFactor.Totp,
-    ): AppwriteResult<Unit> = delete(
-        path = "/account/mfa/authenticators/${type.value}",
-    )
+    ): AppwriteResult<Unit> =
+        delete(
+            path = "/account/mfa/authenticators/${type.value}",
+        )
 
     suspend fun createChallenge(
         factor: AuthenticationFactor,
-    ): AppwriteResult<MfaChallenge> = post(
-        path = "/account/mfa/challenge",
-        params = mapOf("factor" to factor.value),
-    )
+    ): AppwriteResult<MfaChallenge> =
+        post(
+            path = "/account/mfa/challenge",
+            params = mapOf("factor" to factor.value),
+        )
 
     suspend fun verifyChallenge(
         challengeId: String,
         otp: String,
-    ): AppwriteResult<Session> = put(
-        path = "/account/mfa/challenge",
-        params = mapOf("challengeId" to challengeId, "otp" to otp),
-    )
+    ): AppwriteResult<Session> =
+        put(
+            path = "/account/mfa/challenge",
+            params = mapOf("challengeId" to challengeId, "otp" to otp),
+        )
 
     suspend fun getRecoveryCodes(): AppwriteResult<MfaRecoveryCodes> =
         get(path = "/account/mfa/recovery-codes")

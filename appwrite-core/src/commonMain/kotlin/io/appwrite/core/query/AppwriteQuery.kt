@@ -1,11 +1,11 @@
 package io.appwrite.core.query
 
+import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.add
 import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
@@ -35,7 +35,6 @@ import kotlinx.serialization.json.put
  * For a type-safe Kotlin DSL alternative see [QueryBuilder] / [buildQuery].
  */
 public object Query {
-
     private val json: Json = Json
 
     // ── Comparison ───────────────────────────────────────────────────
@@ -131,45 +130,49 @@ public object Query {
     // ── Internals ────────────────────────────────────────────────────
 
     private fun encode(method: String, attribute: String?, value: Any?): String {
-        val obj = buildJsonObject {
-            put("method", method)
-            if (attribute != null) put("attribute", attribute)
-            if (value != null) {
-                put("values", valuesArray(value))
+        val obj =
+            buildJsonObject {
+                put("method", method)
+                if (attribute != null) put("attribute", attribute)
+                if (value != null) {
+                    put("values", valuesArray(value))
+                }
             }
-        }
         return json.encodeToString(JsonObject.serializer(), obj)
     }
 
     private fun encodeNested(method: String, queries: List<String>): String {
-        val obj = buildJsonObject {
-            put("method", method)
-            put(
-                "values",
-                buildJsonArray {
-                    queries.forEach { q -> add(json.parseToJsonElement(q)) }
-                },
-            )
-        }
+        val obj =
+            buildJsonObject {
+                put("method", method)
+                put(
+                    "values",
+                    buildJsonArray {
+                        queries.forEach { q -> add(json.parseToJsonElement(q)) }
+                    },
+                )
+            }
         return json.encodeToString(JsonObject.serializer(), obj)
     }
 
     /** Normalise a single value or a list into the `values` JSON array. */
-    private fun valuesArray(value: Any): JsonArray = when (value) {
-        is List<*> -> buildJsonArray { value.forEach { add(toElement(it)) } }
-        else -> buildJsonArray { add(toElement(value)) }
-    }
+    private fun valuesArray(value: Any): JsonArray =
+        when (value) {
+            is List<*> -> buildJsonArray { value.forEach { add(toElement(it)) } }
+            else -> buildJsonArray { add(toElement(value)) }
+        }
 
-    private fun toElement(value: Any?): JsonElement = when (value) {
-        null -> JsonNull
-        is JsonElement -> value
-        is String -> JsonPrimitive(value)
-        is Boolean -> JsonPrimitive(value)
-        is Int -> JsonPrimitive(value)
-        is Long -> JsonPrimitive(value)
-        is Double -> JsonPrimitive(value)
-        is Float -> JsonPrimitive(value)
-        is Number -> JsonPrimitive(value)
-        else -> JsonPrimitive(value.toString())
-    }
+    private fun toElement(value: Any?): JsonElement =
+        when (value) {
+            null -> JsonNull
+            is JsonElement -> value
+            is String -> JsonPrimitive(value)
+            is Boolean -> JsonPrimitive(value)
+            is Int -> JsonPrimitive(value)
+            is Long -> JsonPrimitive(value)
+            is Double -> JsonPrimitive(value)
+            is Float -> JsonPrimitive(value)
+            is Number -> JsonPrimitive(value)
+            else -> JsonPrimitive(value.toString())
+        }
 }

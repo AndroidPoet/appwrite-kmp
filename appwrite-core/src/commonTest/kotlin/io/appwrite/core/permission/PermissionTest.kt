@@ -4,7 +4,6 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class PermissionTest {
-
     @Test
     fun permission_read_wrapsRole() {
         assertEquals("""read("any")""", Permission.read(Role.any()))

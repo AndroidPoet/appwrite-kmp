@@ -1,0 +1,43 @@
+---
+title: Realtime
+description: Subscribe to Appwrite realtime channels as coroutine Flows with auto-reconnect.
+---
+
+import { Callout } from 'nextra/components'
+
+# Realtime
+
+The `appwrite-realtime` module exposes Appwrite's realtime channels as coroutine `Flow`s.
+Subscriptions reconnect automatically with exponential backoff and are cleaned up when the
+collecting scope is cancelled.
+
+## Subscribe to a collection
+
+```kotlin
+appwrite.realtime
+    .documents(DatabaseId("main"), CollectionId("messages"))
+    .onEach { event -> updateUI(event.payload) }
+    .launchIn(viewModelScope) // auto-cleanup when the scope is cancelled
+```
+
+## Subscribe to the current account
+
+```kotlin
+appwrite.realtime.account()
+    .collect { event -> handleAccountEvent(event) }
+```
+
+## Lifecycle & reconnection
+
+Because each subscription is a `Flow`, its lifecycle follows the coroutine that collects it:
+
+- Cancel the collecting scope (e.g. a `viewModelScope`) and the subscription closes.
+- A dropped socket reconnects automatically with exponential backoff — you keep receiving
+  events without re-subscribing.
+- Multiple channels collected in the same scope share one underlying connection.
+
+<Callout type="info">
+  Realtime delivers change notifications; it does not replace the REST services. Read the
+  authoritative document with the [databases](/usage#databases--the-query-dsl) service when
+  you need the full, current state.
+</Callout>

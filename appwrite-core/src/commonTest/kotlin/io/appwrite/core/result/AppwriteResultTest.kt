@@ -2,20 +2,20 @@ package io.appwrite.core.result
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertIs
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
-import kotlin.test.assertFailsWith
 
 class AppwriteResultTest {
-
-    private val sampleError = AppwriteError(
-        message = "Not found",
-        code = 404,
-        type = "not_found",
-    )
+    private val sampleError =
+        AppwriteError(
+            message = "Not found",
+            code = 404,
+            type = "not_found",
+        )
 
     // --- Construction ---
 
@@ -62,9 +62,10 @@ class AppwriteResultTest {
     fun test_getOrThrow_throwsOnFailure() {
         val result: AppwriteResult<String> = AppwriteResult.failure(sampleError)
 
-        val exception = assertFailsWith<AppwriteException> {
-            result.getOrThrow()
-        }
+        val exception =
+            assertFailsWith<AppwriteException> {
+                result.getOrThrow()
+            }
 
         assertEquals(sampleError, exception.error)
     }
@@ -117,10 +118,11 @@ class AppwriteResultTest {
         val result: AppwriteResult<Int> = AppwriteResult.failure(sampleError)
         var called = false
 
-        val chained = result.flatMap {
-            called = true
-            AppwriteResult.success(it.toString())
-        }
+        val chained =
+            result.flatMap {
+                called = true
+                AppwriteResult.success(it.toString())
+            }
 
         assertFalse(called)
         assertIs<AppwriteResult.Failure>(chained)
@@ -130,9 +132,10 @@ class AppwriteResultTest {
 
     @Test
     fun test_catching_wrapsExceptions() {
-        val result = AppwriteResult.catching<String> {
-            throw RuntimeException("boom")
-        }
+        val result =
+            AppwriteResult.catching<String> {
+                throw RuntimeException("boom")
+            }
 
         assertIs<AppwriteResult.Failure>(result)
         assertEquals("boom", result.error.message)

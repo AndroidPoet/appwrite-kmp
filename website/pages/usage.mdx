@@ -1,0 +1,95 @@
+---
+title: Usage
+description: Auth, databases, storage and the query DSL — one shared API across every platform.
+---
+
+import { Callout } from 'nextra/components'
+
+# Usage
+
+Every service lives on the `Appwrite` instance and returns an `AppwriteResult`. The snippets
+below run unchanged on Android, iOS, JVM and Wasm.
+
+## Authentication
+
+```kotlin
+val user = appwrite.auth.signUp(
+    email = "user@example.com",
+    password = "password123",
+    name = "Jane Doe",
+)
+
+when (val result = appwrite.auth.signInWithEmail("user@example.com", "password123")) {
+    is AppwriteResult.Success -> println("Session: ${result.data.id}")
+    is AppwriteResult.Failure -> println("Error: ${result.error.message}")
+}
+
+// Multi-factor authentication
+appwrite.auth.mfa.enable()
+appwrite.auth.mfa.createAuthenticator(AuthenticationFactor.Totp)
+appwrite.auth.mfa.verifyAuthenticator(AuthenticationFactor.Totp, otp = "123456")
+
+appwrite.auth.signOut()
+```
+
+## Databases & the query DSL
+
+Typed IDs index into databases and collections; queries are built with an infix DSL instead
+of raw strings:
+
+```kotlin
+val users = appwrite.databases[DatabaseId("main")][CollectionId("users")]
+
+users.create(
+    data = mapOf("name" to "Jane", "age" to 28, "status" to "active"),
+)
+
+val result = users.list {
+    where("age" greaterThan 18)
+    where("status" equal "active")
+    orderBy("name")
+    limit(25)
+}
+
+users.update(
+    documentId = DocumentId("abc123"),
+    data = mapOf("status" to "inactive"),
+)
+```
+
+The DSL covers `equal`, `notEqual`, `greaterThan`, `lessThan`, `contains`, `startsWith`,
+`between`, `oneOf`, `isNull`/`isNotNull` and `search`, plus pagination via `limit`,
+`offset`, `cursorAfter`/`cursorBefore` and `select`.
+
+## Storage
+
+Uploads are chunked and surface progress as a `Flow<UploadState>`:
+
+```kotlin
+val file = InputFile.fromBytes(imageBytes, "photo.jpg", "image/jpeg")
+
+appwrite.storage.upload(BucketId("photos"), FileId.unique(), file)
+    .collect { state ->
+        when (state) {
+            is UploadState.Progress -> println("${state.chunksUploaded}/${state.chunksTotal}")
+            is UploadState.Complete -> println("Uploaded: ${state.file.id}")
+            is UploadState.Failed -> println("Error: ${state.error.message}")
+        }
+    }
+
+val bytes = appwrite.storage.download(BucketId("photos"), FileId("abc123"))
+```
+
+## Functions
+
+```kotlin
+val execution = appwrite.functions.createExecution(
+    functionId = FunctionId("send-welcome-email"),
+    body = """{"userId": "abc123"}""",
+)
+```
+
+<Callout type="warning">
+  Calls never throw for ordinary failures — handle both `AppwriteResult` arms. See
+  [Results & Errors](/results-and-errors).
+</Callout>

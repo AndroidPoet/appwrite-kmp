@@ -30,8 +30,9 @@ import io.appwrite.core.types.DocumentId
  * collection.list { where("age" greaterThan 18) }
  * ```
  */
-class Databases(appwrite: Appwrite) : ServiceBase(appwrite.transport) {
-
+class Databases(
+    appwrite: Appwrite,
+) : ServiceBase(appwrite.transport) {
     operator fun get(databaseId: DatabaseId) = DatabaseScope(databaseId, this)
 
     // ── Document CRUD ────────────────────────────────────────
@@ -40,24 +41,28 @@ class Databases(appwrite: Appwrite) : ServiceBase(appwrite.transport) {
         databaseId: DatabaseId,
         collectionId: CollectionId,
         query: (QueryBuilder.() -> Unit)? = null,
-    ): AppwriteResult<DocumentList> = get(
-        path = "/databases/${databaseId.raw}/collections/${collectionId.raw}/documents",
-        params = buildMap {
-            if (query != null) put("queries", buildQuery(query))
-        },
-    )
+    ): AppwriteResult<DocumentList> =
+        get(
+            path = "/databases/${databaseId.raw}/collections/${collectionId.raw}/documents",
+            params =
+                buildMap {
+                    if (query != null) put("queries", buildQuery(query))
+                },
+        )
 
     suspend fun getDocument(
         databaseId: DatabaseId,
         collectionId: CollectionId,
         documentId: DocumentId,
         queries: List<String>? = null,
-    ): AppwriteResult<Document> = get(
-        path = "/databases/${databaseId.raw}/collections/${collectionId.raw}/documents/${documentId.raw}",
-        params = buildMap {
-            if (queries != null) put("queries", queries)
-        },
-    )
+    ): AppwriteResult<Document> =
+        get(
+            path = "/databases/${databaseId.raw}/collections/${collectionId.raw}/documents/${documentId.raw}",
+            params =
+                buildMap {
+                    if (queries != null) put("queries", queries)
+                },
+        )
 
     suspend fun createDocument(
         databaseId: DatabaseId,
@@ -65,14 +70,16 @@ class Databases(appwrite: Appwrite) : ServiceBase(appwrite.transport) {
         documentId: DocumentId = DocumentId.unique(),
         data: Map<String, Any?>,
         permissions: List<String>? = null,
-    ): AppwriteResult<Document> = post(
-        path = "/databases/${databaseId.raw}/collections/${collectionId.raw}/documents",
-        params = buildMap {
-            put("documentId", documentId.raw)
-            put("data", data)
-            if (permissions != null) put("permissions", permissions)
-        },
-    )
+    ): AppwriteResult<Document> =
+        post(
+            path = "/databases/${databaseId.raw}/collections/${collectionId.raw}/documents",
+            params =
+                buildMap {
+                    put("documentId", documentId.raw)
+                    put("data", data)
+                    if (permissions != null) put("permissions", permissions)
+                },
+        )
 
     suspend fun updateDocument(
         databaseId: DatabaseId,
@@ -80,21 +87,24 @@ class Databases(appwrite: Appwrite) : ServiceBase(appwrite.transport) {
         documentId: DocumentId,
         data: Map<String, Any?>? = null,
         permissions: List<String>? = null,
-    ): AppwriteResult<Document> = patch(
-        path = "/databases/${databaseId.raw}/collections/${collectionId.raw}/documents/${documentId.raw}",
-        params = buildMap {
-            if (data != null) put("data", data)
-            if (permissions != null) put("permissions", permissions)
-        },
-    )
+    ): AppwriteResult<Document> =
+        patch(
+            path = "/databases/${databaseId.raw}/collections/${collectionId.raw}/documents/${documentId.raw}",
+            params =
+                buildMap {
+                    if (data != null) put("data", data)
+                    if (permissions != null) put("permissions", permissions)
+                },
+        )
 
     suspend fun deleteDocument(
         databaseId: DatabaseId,
         collectionId: CollectionId,
         documentId: DocumentId,
-    ): AppwriteResult<Unit> = delete(
-        path = "/databases/${databaseId.raw}/collections/${collectionId.raw}/documents/${documentId.raw}",
-    )
+    ): AppwriteResult<Unit> =
+        delete(
+            path = "/databases/${databaseId.raw}/collections/${collectionId.raw}/documents/${documentId.raw}",
+        )
 
     // ── Atomic Operations ────────────────────────────────────
 
@@ -104,10 +114,11 @@ class Databases(appwrite: Appwrite) : ServiceBase(appwrite.transport) {
         documentId: DocumentId,
         attribute: String,
         value: Number = 1,
-    ): AppwriteResult<Document> = patch(
-        path = "/databases/${databaseId.raw}/collections/${collectionId.raw}/documents/${documentId.raw}/increment",
-        params = mapOf("attribute" to attribute, "value" to value),
-    )
+    ): AppwriteResult<Document> =
+        patch(
+            path = "/databases/${databaseId.raw}/collections/${collectionId.raw}/documents/${documentId.raw}/increment",
+            params = mapOf("attribute" to attribute, "value" to value),
+        )
 
     suspend fun decrementAttribute(
         databaseId: DatabaseId,
@@ -115,10 +126,11 @@ class Databases(appwrite: Appwrite) : ServiceBase(appwrite.transport) {
         documentId: DocumentId,
         attribute: String,
         value: Number = 1,
-    ): AppwriteResult<Document> = patch(
-        path = "/databases/${databaseId.raw}/collections/${collectionId.raw}/documents/${documentId.raw}/decrement",
-        params = mapOf("attribute" to attribute, "value" to value),
-    )
+    ): AppwriteResult<Document> =
+        patch(
+            path = "/databases/${databaseId.raw}/collections/${collectionId.raw}/documents/${documentId.raw}/decrement",
+            params = mapOf("attribute" to attribute, "value" to value),
+        )
 }
 
 /**

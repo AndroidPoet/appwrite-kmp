@@ -14,10 +14,11 @@ class AppwriteConfigBuilder {
     var selfSigned: Boolean = false
     var logging: Boolean = false
 
-    internal fun build(projectId: ProjectId) = AppwriteConfig(
-        projectId = projectId,
-        endpoint = endpoint,
-        selfSigned = selfSigned,
-        logging = logging,
-    )
+    internal fun build(projectId: ProjectId) =
+        AppwriteConfig(
+            projectId = projectId,
+            endpoint = endpoint,
+            selfSigned = selfSigned,
+            logging = logging,
+        )
 }

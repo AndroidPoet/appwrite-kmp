@@ -238,6 +238,10 @@ appwrite.sessionStore = SessionStore()
 4. Run tests: `./gradlew jvmTest`
 5. Open a PR
 
+## Find this repository useful? :heart:
+Support it by joining __[stargazers](https://github.com/androidpoet/appwrite-kmp/stargazers)__ for this repository. :star: <br>
+Also, __[follow me](https://github.com/androidpoet)__ on GitHub for my next creations! 🤩
+
 ## License
 
 [MIT](LICENSE)

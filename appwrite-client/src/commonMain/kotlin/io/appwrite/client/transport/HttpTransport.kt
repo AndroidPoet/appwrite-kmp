@@ -14,8 +14,15 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.add
+import kotlinx.serialization.json.buildJsonArray
+import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.put
 
 class HttpTransport constructor(val config: AppwriteConfig) {
 
@@ -83,6 +90,9 @@ class HttpTransport constructor(val config: AppwriteConfig) {
         this.method = method.toKtor()
 
         url {
+            // takeFrom übernimmt Schema, Host UND den Basis-Pfad (z. B. /v1) aus dem Endpoint.
+            // Ohne das verliert appendPathSegments das /v1 -> Server antwortet 404.
+            takeFrom(config.endpoint)
             appendPathSegments(path.removePrefix("/"))
 
             if (method == HttpMethod.GET) {
@@ -101,7 +111,10 @@ class HttpTransport constructor(val config: AppwriteConfig) {
         customHeaders.forEach { entry -> header(entry.key, entry.value) }
 
         if (method != HttpMethod.GET && params.isNotEmpty()) {
-            setBody(params.filterValues { it != null })
+            // Als JsonObject senden statt als roher Map<String, Any?>: kotlinx.serialization
+            // kann eine heterogen typisierte Map (String + Boolean + Map ...) nicht direkt
+            // serialisieren ("Serializing collections of different element types").
+            setBody(params.toJsonBody())
         }
     }
 
@@ -189,6 +202,7 @@ class HttpTransport constructor(val config: AppwriteConfig) {
             },
         ) {
             url {
+                takeFrom(config.endpoint)
                 appendPathSegments(path.removePrefix("/"))
             }
             method = io.ktor.http.HttpMethod.Post
@@ -205,6 +219,30 @@ class HttpTransport constructor(val config: AppwriteConfig) {
     fun close() {
         client.close()
     }
+}
+
+/** Baut aus einer gemischt-typisierten Param-Map ein JsonObject (null-Werte werden ausgelassen). */
+private fun Map<String, Any?>.toJsonBody(): JsonObject = buildJsonObject {
+    for ((key, value) in this@toJsonBody) {
+        if (value != null) put(key, value.toJsonElement())
+    }
+}
+
+private fun Any?.toJsonElement(): JsonElement = when (this) {
+    null -> JsonNull
+    is JsonElement -> this
+    is String -> JsonPrimitive(this)
+    is Boolean -> JsonPrimitive(this)
+    is Number -> JsonPrimitive(this)
+    is Map<*, *> -> buildJsonObject {
+        for ((k, v) in this@toJsonElement) {
+            if (k != null) put(k.toString(), v.toJsonElement())
+        }
+    }
+    is Iterable<*> -> buildJsonArray {
+        for (item in this@toJsonElement) add(item.toJsonElement())
+    }
+    else -> JsonPrimitive(toString())
 }
 
 @PublishedApi

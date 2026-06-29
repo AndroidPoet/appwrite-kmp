@@ -17,7 +17,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonPrimitive
 
-class HttpTransport internal constructor(private val config: AppwriteConfig) {
+class HttpTransport constructor(val config: AppwriteConfig) {
 
     private val json = Json {
         ignoreUnknownKeys = true
@@ -122,7 +122,10 @@ class HttpTransport internal constructor(private val config: AppwriteConfig) {
         )
     }
 
-    suspend inline fun <reified T> call(
+
+    var onSessionUpdated: ((String) -> Unit)? = null
+    @PublishedApi
+    internal suspend inline fun <reified T> call(
         method: HttpMethod,
         path: String,
         params: Map<String, Any?> = emptyMap(),
@@ -131,6 +134,24 @@ class HttpTransport internal constructor(private val config: AppwriteConfig) {
         if (!response.status.isSuccess()) {
             handleErrorResponse(response)
         }
+
+        // --- START DES NEUEN CODES ---
+        // Nach jedem Request prüfen wir, ob Appwrite uns ein Session-Cookie mitgeschickt hat.
+        val cookies = response.setCookie()
+        // Der Cookie heißt bei Appwrite "a_session_" gefolgt von der Projekt-ID
+        val sessionCookie = cookies.find {
+            it.name.startsWith("a_session_${config.projectId.raw}")
+        }
+
+        if (sessionCookie != null) {
+            val token = sessionCookie.value
+            // 1. Token für den aktuellen Laufzeit-Client im Header speichern
+            setSession(token)
+            // 2. Token an die Appwrite-Klasse melden, damit er ins SharedPreferences/SessionStore geschrieben wird
+            onSessionUpdated?.invoke(token)
+        }
+        // --- ENDE DES NEUEN CODES ---
+
         return response.body()
     }
 

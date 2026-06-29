@@ -27,7 +27,12 @@ class Appwrite(
         .apply(configure)
         .build(ProjectId(projectId))
 
-    val transport = HttpTransport(config)
+    var transport = HttpTransport(config)
+
+    fun overloadTransport(trans: HttpTransport) {
+        transport = trans
+        sessionStore?.let { store -> store.load(SESSION_KEY)?.let { token -> transport.setSession(token) } }
+    }
 
     /**
      * Optional session store for persisting sessions across app restarts.

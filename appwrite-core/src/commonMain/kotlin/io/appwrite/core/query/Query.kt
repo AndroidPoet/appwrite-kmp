@@ -2,10 +2,16 @@ package io.appwrite.core.query
 
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 
 /**
  * Type-safe query builder for Appwrite.
+ *
+ * Encodes queries in the modern Appwrite JSON format
+ * (`{"method":"equal","attribute":"x","values":[...]}`) — the legacy string
+ * syntax (`equal("x", [...])`) is rejected by current servers with
+ * "Invalid query: Syntax error".
  *
  * Usage:
  * ```
@@ -28,28 +34,27 @@ class QueryBuilder {
 
     fun orderBy(attribute: String, descending: Boolean = false) {
         val method = if (descending) "orderDesc" else "orderAsc"
-        queries.add("""$method("$attribute")""")
+        queries.add(encodeQuery(method, attribute = attribute))
     }
 
     fun limit(count: Int) {
-        queries.add("""limit($count)""")
+        queries.add(encodeQuery("limit", values = listOf(count)))
     }
 
     fun offset(count: Int) {
-        queries.add("""offset($count)""")
+        queries.add(encodeQuery("offset", values = listOf(count)))
     }
 
     fun cursorAfter(documentId: String) {
-        queries.add("""cursorAfter("$documentId")""")
+        queries.add(encodeQuery("cursorAfter", values = listOf(documentId)))
     }
 
     fun cursorBefore(documentId: String) {
-        queries.add("""cursorBefore("$documentId")""")
+        queries.add(encodeQuery("cursorBefore", values = listOf(documentId)))
     }
 
     fun select(vararg attributes: String) {
-        val attrs = attributes.joinToString(",") { "\"$it\"" }
-        queries.add("select([$attrs])")
+        queries.add(encodeQuery("select", values = attributes.toList()))
     }
 
     fun build(): List<String> = queries.toList()
@@ -82,10 +87,7 @@ private class ComparisonCondition(
     private val attribute: String,
     private val value: Any,
 ) : QueryCondition() {
-    override fun encode(): String {
-        val encoded = encodeValue(value)
-        return """$method("$attribute", [$encoded])"""
-    }
+    override fun encode(): String = encodeQuery(method, attribute = attribute, values = listOf(value))
 }
 
 private class ArrayCondition(
@@ -93,10 +95,7 @@ private class ArrayCondition(
     private val attribute: String,
     private val values: List<Any>,
 ) : QueryCondition() {
-    override fun encode(): String {
-        val encoded = values.joinToString(",") { encodeValue(it) }
-        return """$method("$attribute", [$encoded])"""
-    }
+    override fun encode(): String = encodeQuery(method, attribute = attribute, values = values)
 }
 
 private class BetweenCondition(
@@ -104,23 +103,31 @@ private class BetweenCondition(
     private val start: Any,
     private val end: Any,
 ) : QueryCondition() {
-    override fun encode(): String {
-        return """between("$attribute", ${encodeValue(start)}, ${encodeValue(end)})"""
-    }
+    override fun encode(): String = encodeQuery("between", attribute = attribute, values = listOf(start, end))
 }
 
 private class NullCondition(
     private val method: String,
     private val attribute: String,
 ) : QueryCondition() {
-    override fun encode(): String = """$method("$attribute")"""
+    override fun encode(): String = encodeQuery(method, attribute = attribute)
 }
 
-private fun encodeValue(value: Any): String = when (value) {
-    is String -> "\"$value\""
-    is Boolean -> value.toString()
-    is Number -> value.toString()
-    else -> "\"$value\""
+/** Builds the Appwrite query JSON; kotlinx.serialization handles the escaping. */
+private fun encodeQuery(method: String, attribute: String? = null, values: List<Any>? = null): String {
+    val fields = buildMap<String, JsonElement> {
+        put("method", JsonPrimitive(method))
+        if (attribute != null) put("attribute", JsonPrimitive(attribute))
+        if (values != null) put("values", JsonArray(values.map { it.toJsonPrimitive() }))
+    }
+    return JsonObject(fields).toString()
+}
+
+private fun Any.toJsonPrimitive(): JsonPrimitive = when (this) {
+    is Boolean -> JsonPrimitive(this)
+    is Number -> JsonPrimitive(this)
+    is String -> JsonPrimitive(this)
+    else -> JsonPrimitive(toString())
 }
 
 fun buildQuery(block: QueryBuilder.() -> Unit): List<String> =

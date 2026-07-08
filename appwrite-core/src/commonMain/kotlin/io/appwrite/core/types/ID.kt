@@ -1,6 +1,6 @@
 package io.appwrite.core.types
 
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 import kotlin.random.Random
 
 /**

@@ -2,10 +2,8 @@ package io.appwrite.core.query
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
 class QueryTest {
-
     @Test
     fun test_equal_generatesCorrectQuery() {
         val condition = "name" equal "Alice"
@@ -116,9 +114,10 @@ class QueryTest {
 
     @Test
     fun test_orderBy_ascending() {
-        val queries = buildQuery {
-            orderBy("createdAt")
-        }
+        val queries =
+            buildQuery {
+                orderBy("createdAt")
+            }
 
         assertEquals(1, queries.size)
         assertEquals("""orderAsc("createdAt")""", queries[0])
@@ -126,9 +125,10 @@ class QueryTest {
 
     @Test
     fun test_orderBy_descending() {
-        val queries = buildQuery {
-            orderBy("updatedAt", descending = true)
-        }
+        val queries =
+            buildQuery {
+                orderBy("updatedAt", descending = true)
+            }
 
         assertEquals(1, queries.size)
         assertEquals("""orderDesc("updatedAt")""", queries[0])
@@ -136,9 +136,10 @@ class QueryTest {
 
     @Test
     fun test_limit_generatesCorrectQuery() {
-        val queries = buildQuery {
-            limit(25)
-        }
+        val queries =
+            buildQuery {
+                limit(25)
+            }
 
         assertEquals(1, queries.size)
         assertEquals("limit(25)", queries[0])
@@ -146,9 +147,10 @@ class QueryTest {
 
     @Test
     fun test_offset_generatesCorrectQuery() {
-        val queries = buildQuery {
-            offset(50)
-        }
+        val queries =
+            buildQuery {
+                offset(50)
+            }
 
         assertEquals(1, queries.size)
         assertEquals("offset(50)", queries[0])
@@ -156,9 +158,10 @@ class QueryTest {
 
     @Test
     fun test_select_withMultipleFields() {
-        val queries = buildQuery {
-            select("name", "email", "age")
-        }
+        val queries =
+            buildQuery {
+                select("name", "email", "age")
+            }
 
         assertEquals(1, queries.size)
         assertEquals("""select(["name","email","age"])""", queries[0])
@@ -166,12 +169,13 @@ class QueryTest {
 
     @Test
     fun test_buildQuery_combinesMultipleConditions() {
-        val queries = buildQuery {
-            where("age" greaterThan 18)
-            where("status" equal "active")
-            orderBy("name")
-            limit(10)
-        }
+        val queries =
+            buildQuery {
+                where("age" greaterThan 18)
+                where("status" equal "active")
+                orderBy("name")
+                limit(10)
+            }
 
         assertEquals(4, queries.size)
         assertEquals("""greaterThan("age", [18])""", queries[0])
@@ -182,9 +186,10 @@ class QueryTest {
 
     @Test
     fun test_cursorAfter_generatesCorrectQuery() {
-        val queries = buildQuery {
-            cursorAfter("abc123")
-        }
+        val queries =
+            buildQuery {
+                cursorAfter("abc123")
+            }
 
         assertEquals(1, queries.size)
         assertEquals("""cursorAfter("abc123")""", queries[0])

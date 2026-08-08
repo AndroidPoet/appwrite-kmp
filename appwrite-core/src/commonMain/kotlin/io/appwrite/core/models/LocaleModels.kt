@@ -14,16 +14,29 @@ data class LocaleData(
 )
 
 @Serializable
-data class Country(val name: String, val code: String)
+data class Country(
+    val name: String,
+    val code: String,
+)
 
 @Serializable
-data class CountryList(val total: Int, val countries: List<Country>)
+data class CountryList(
+    val total: Int,
+    val countries: List<Country>,
+)
 
 @Serializable
-data class Language(val name: String, val code: String, val nativeName: String)
+data class Language(
+    val name: String,
+    val code: String,
+    val nativeName: String,
+)
 
 @Serializable
-data class LanguageList(val total: Int, val languages: List<Language>)
+data class LanguageList(
+    val total: Int,
+    val languages: List<Language>,
+)
 
 @Serializable
 data class Currency(
@@ -37,22 +50,44 @@ data class Currency(
 )
 
 @Serializable
-data class CurrencyList(val total: Int, val currencies: List<Currency>)
+data class CurrencyList(
+    val total: Int,
+    val currencies: List<Currency>,
+)
 
 @Serializable
-data class Continent(val name: String, val code: String)
+data class Continent(
+    val name: String,
+    val code: String,
+)
 
 @Serializable
-data class ContinentList(val total: Int, val continents: List<Continent>)
+data class ContinentList(
+    val total: Int,
+    val continents: List<Continent>,
+)
 
 @Serializable
-data class Phone(val code: String, val countryCode: String, val countryName: String)
+data class Phone(
+    val code: String,
+    val countryCode: String,
+    val countryName: String,
+)
 
 @Serializable
-data class PhoneList(val total: Int, val phones: List<Phone>)
+data class PhoneList(
+    val total: Int,
+    val phones: List<Phone>,
+)
 
 @Serializable
-data class LocaleCode(val code: String, val name: String)
+data class LocaleCode(
+    val code: String,
+    val name: String,
+)
 
 @Serializable
-data class LocaleCodeList(val total: Int, val localeCodes: List<LocaleCode>)
+data class LocaleCodeList(
+    val total: Int,
+    val localeCodes: List<LocaleCode>,
+)

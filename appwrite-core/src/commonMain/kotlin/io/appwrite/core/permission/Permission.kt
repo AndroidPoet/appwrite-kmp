@@ -14,7 +14,6 @@ package io.appwrite.core.permission
  * ```
  */
 public object Permission {
-
     public fun read(role: String): String = "read(\"$role\")"
 
     public fun write(role: String): String = "write(\"$role\")"

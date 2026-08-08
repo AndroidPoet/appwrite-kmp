@@ -6,7 +6,6 @@ import kotlin.test.assertNotEquals
 import kotlin.test.assertTrue
 
 class IDTest {
-
     @Test
     fun custom_returnsInputUnchanged() {
         assertEquals("my-id", ID.custom("my-id"))

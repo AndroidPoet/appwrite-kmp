@@ -5,7 +5,6 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
 
 class IdsTest {
-
     @Test
     fun test_userId_unique_generatesUniqueMarker() {
         val id = UserId.unique()

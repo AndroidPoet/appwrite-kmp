@@ -1,0 +1,44 @@
+---
+title: Modules
+description: Appwrite KMP is split into a shared core plus one artifact per Appwrite service.
+---
+
+# Modules
+
+Appwrite KMP is modular: a single `appwrite-core` holds the shared primitives, the
+`appwrite-client` wires up transport and configuration, and each Appwrite service ships as
+its own artifact so you depend only on what you use.
+
+| Module | Artifact | What it gives you |
+| --- | --- | --- |
+| Core | `appwrite-core` | Models, typed IDs, `AppwriteResult`, the query DSL, permissions & roles |
+| Client | `appwrite-client` | The `Appwrite` entry point, HTTP transport, session/JWT handling |
+| Auth | `appwrite-auth` | Sign-up/in, sessions, MFA, email/phone verification, recovery |
+| Databases | `appwrite-database` | Document CRUD and listing with the query DSL |
+| Storage | `appwrite-storage` | Chunked uploads (`Flow<UploadState>`), downloads, previews |
+| Realtime | `appwrite-realtime` | Coroutine `Flow` subscriptions with auto-reconnect |
+| Teams | `appwrite-teams` | Team and membership management |
+| Functions | `appwrite-functions` | Trigger and inspect function executions |
+| Locale | `appwrite-locale` | Locale, countries, currencies, languages |
+| Avatars | `appwrite-avatars` | Initials, image, QR and favicon avatar URLs |
+
+## Layered design
+
+Within each module the code is layered so service definitions stay thin and the
+Appwrite-specific concerns are isolated:
+
+```
+┌─────────────────────────────────────┐
+│  Public API   (what devs touch)     │  DSL builders, typed IDs, Flows
+├─────────────────────────────────────┤
+│  Domain       (business logic)      │  Session management, query building,
+│                                     │  chunked-upload orchestration
+├─────────────────────────────────────┤
+│  Protocol     (Appwrite specifics)  │  Header injection, error mapping,
+│                                     │  response deserialization
+├─────────────────────────────────────┤
+│  Transport    (HTTP/WS engine)      │  Ktor client, expect/actual per target
+└─────────────────────────────────────┘
+```
+
+`appwrite-core` and `appwrite-client` are required; the rest are opt-in.

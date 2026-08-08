@@ -1,0 +1,63 @@
+---
+title: Results & Errors
+description: Appwrite KMP is errors-as-values — every call returns a sealed AppwriteResult you handle exhaustively.
+---
+
+import { Callout } from 'nextra/components'
+
+# Results & Errors
+
+Appwrite KMP treats **errors as values**. Service calls don't throw for ordinary failures —
+they return a sealed `AppwriteResult<T>` you exhaustively `when` over.
+
+```kotlin
+when (val result = appwrite.auth.signInWithEmail(email, password)) {
+    is AppwriteResult.Success -> {
+        val session = result.data            // the typed payload
+    }
+    is AppwriteResult.Failure -> {
+        val message = result.error.message   // human-readable detail
+        val code = result.error.code         // HTTP status (e.g. 401)
+        val type = result.error.type         // stable Appwrite error type
+    }
+}
+```
+
+## Success
+
+`AppwriteResult.Success` wraps the typed `data` — a `Session`, `User`, `Document`,
+`DocumentList`, and so on, depending on the call.
+
+## Failure
+
+`AppwriteResult.Failure` carries an `AppwriteError` with three fields:
+
+- `message` — a human-readable description.
+- `code` — the HTTP status code (`0` when the failure was a thrown, non-HTTP exception).
+- `type` — Appwrite's stable, switchable error type string.
+
+## Convenience helpers
+
+The result type ships ergonomic accessors and combinators so you don't always need a full
+`when`:
+
+```kotlin
+val session = result.getOrNull()           // T? on success, null on failure
+val sessionOrThrow = result.getOrThrow()   // throws AppwriteException on failure
+val error = result.errorOrNull()           // AppwriteError? on failure
+
+result
+    .map { it.id }                         // transform the success value
+    .onSuccess { id -> println(id) }        // side effect on success
+    .onFailure { e -> log(e.message) }      // side effect on failure
+
+val chained = result.flatMap { fetchProfile(it.userId) }   // chain dependent calls
+```
+
+`AppwriteResult.catching { ... }` wraps any block, converting a thrown `AppwriteException`
+(or any other exception) into a `Failure` for you.
+
+<Callout type="info">
+  Because `AppwriteResult` is a sealed interface, the compiler forces you to handle both arms
+  — there's no silent path where a failed call looks like a success.
+</Callout>

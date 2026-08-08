@@ -1,0 +1,83 @@
+---
+title: Getting Started
+description: Install Appwrite KMP and make your first authenticated call.
+---
+
+import { Steps, Callout } from 'nextra/components'
+
+# Getting Started
+
+## Install
+
+Add the client plus whichever service modules you need. Everything is published to
+**Maven Central** under the `io.github.androidpoet` group:
+
+```kotlin
+dependencies {
+    implementation("io.github.androidpoet:appwrite-client:<version>")
+
+    // Pull in only the services you use:
+    implementation("io.github.androidpoet:appwrite-auth:<version>")
+    implementation("io.github.androidpoet:appwrite-database:<version>")
+    implementation("io.github.androidpoet:appwrite-storage:<version>")
+    implementation("io.github.androidpoet:appwrite-realtime:<version>")
+    implementation("io.github.androidpoet:appwrite-teams:<version>")
+    implementation("io.github.androidpoet:appwrite-functions:<version>")
+    implementation("io.github.androidpoet:appwrite-locale:<version>")
+    implementation("io.github.androidpoet:appwrite-avatars:<version>")
+}
+```
+
+`appwrite-core` is pulled in transitively — it holds the models, typed IDs, `AppwriteResult`
+and the query DSL.
+
+## Your first call
+
+<Steps>
+
+### Create the client
+
+The `projectId` is required; everything else is configured in the trailing lambda.
+
+```kotlin
+val appwrite = Appwrite("my-project-id") {
+    endpoint = "https://cloud.appwrite.io/v1" // default; override for self-hosted
+    logging = true                            // log HTTP traffic in debug builds
+}
+```
+
+### Call a service
+
+Each service hangs off the client and returns an `AppwriteResult`:
+
+```kotlin
+when (val result = appwrite.auth.signInWithEmail("user@example.com", "secret")) {
+    is AppwriteResult.Success -> println("Session: ${result.data.id}")
+    is AppwriteResult.Failure -> showError(result.error.message)
+}
+```
+
+### Persist the session (optional)
+
+By default sessions live in memory. Attach a `SessionStore` to persist them across app
+restarts — the store is platform-provided (Keychain on iOS, file/prefs on JVM,
+`localStorage` on Wasm):
+
+```kotlin
+appwrite.sessionStore = SessionStore()
+```
+
+### Clean up
+
+Close the client when you're done to release the underlying HTTP engine:
+
+```kotlin
+appwrite.close()
+```
+
+</Steps>
+
+<Callout type="info">
+  The endpoint defaults to Appwrite Cloud. For a self-hosted instance, set `endpoint` to your
+  server's `/v1` URL and use `selfSigned = true` if it serves a self-signed certificate.
+</Callout>

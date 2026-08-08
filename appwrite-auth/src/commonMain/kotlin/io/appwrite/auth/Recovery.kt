@@ -8,26 +8,30 @@ import io.appwrite.core.result.AppwriteResult
 /**
  * Password recovery flow.
  */
-class Recovery(appwrite: Appwrite) : ServiceBase(appwrite.transport) {
-
+class Recovery(
+    appwrite: Appwrite,
+) : ServiceBase(appwrite.transport) {
     suspend fun createRecovery(
         email: String,
         url: String,
-    ): AppwriteResult<Token> = post(
-        path = "/account/recovery",
-        params = mapOf("email" to email, "url" to url),
-    )
+    ): AppwriteResult<Token> =
+        post(
+            path = "/account/recovery",
+            params = mapOf("email" to email, "url" to url),
+        )
 
     suspend fun confirmRecovery(
         userId: String,
         secret: String,
         password: String,
-    ): AppwriteResult<Token> = put(
-        path = "/account/recovery",
-        params = mapOf(
-            "userId" to userId,
-            "secret" to secret,
-            "password" to password,
-        ),
-    )
+    ): AppwriteResult<Token> =
+        put(
+            path = "/account/recovery",
+            params =
+                mapOf(
+                    "userId" to userId,
+                    "secret" to secret,
+                    "password" to password,
+                ),
+        )
 }

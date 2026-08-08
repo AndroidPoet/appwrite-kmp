@@ -2,7 +2,14 @@ package io.appwrite.auth
 
 import io.appwrite.client.Appwrite
 import io.appwrite.client.ServiceBase
-import io.appwrite.core.models.*
+import io.appwrite.core.models.IdentityList
+import io.appwrite.core.models.Jwt
+import io.appwrite.core.models.LogList
+import io.appwrite.core.models.Session
+import io.appwrite.core.models.SessionList
+import io.appwrite.core.models.Target
+import io.appwrite.core.models.Token
+import io.appwrite.core.models.User
 import io.appwrite.core.result.AppwriteResult
 import io.appwrite.core.types.TargetId
 import io.appwrite.core.types.UserId
@@ -18,8 +25,9 @@ import io.appwrite.core.types.UserId
  * - `auth.verify` — email/phone verification
  * - `auth.recovery` — password recovery
  */
-class Auth(appwrite: Appwrite) : ServiceBase(appwrite.transport) {
-
+class Auth(
+    appwrite: Appwrite,
+) : ServiceBase(appwrite.transport) {
     val mfa = Mfa(appwrite)
     val verify = Verify(appwrite)
     val recovery = Recovery(appwrite)
@@ -31,73 +39,83 @@ class Auth(appwrite: Appwrite) : ServiceBase(appwrite.transport) {
         email: String,
         password: String,
         name: String? = null,
-    ): AppwriteResult<User> = post(
-        path = "/account",
-        params = buildMap {
-            put("userId", userId.raw)
-            put("email", email)
-            put("password", password)
-            if (name != null) put("name", name)
-        },
-    )
+    ): AppwriteResult<User> =
+        post(
+            path = "/account",
+            params =
+                buildMap {
+                    put("userId", userId.raw)
+                    put("email", email)
+                    put("password", password)
+                    if (name != null) put("name", name)
+                },
+        )
 
     // ── Sign In ──────────────────────────────────────────────
 
     suspend fun signInWithEmail(
         email: String,
         password: String,
-    ): AppwriteResult<Session> = post(
-        path = "/account/sessions/email",
-        params = mapOf("email" to email, "password" to password),
-    )
+    ): AppwriteResult<Session> =
+        post(
+            path = "/account/sessions/email",
+            params = mapOf("email" to email, "password" to password),
+        )
 
-    suspend fun signInAnonymous(): AppwriteResult<Session> = post(
-        path = "/account/sessions/anonymous",
-    )
+    suspend fun signInAnonymous(): AppwriteResult<Session> =
+        post(
+            path = "/account/sessions/anonymous",
+        )
 
     suspend fun createEmailToken(
         userId: UserId = UserId.unique(),
         email: String,
         phrase: Boolean? = null,
-    ): AppwriteResult<Token> = post(
-        path = "/account/tokens/email",
-        params = buildMap {
-            put("userId", userId.raw)
-            put("email", email)
-            if (phrase != null) put("phrase", phrase)
-        },
-    )
+    ): AppwriteResult<Token> =
+        post(
+            path = "/account/tokens/email",
+            params =
+                buildMap {
+                    put("userId", userId.raw)
+                    put("email", email)
+                    if (phrase != null) put("phrase", phrase)
+                },
+        )
 
     suspend fun createPhoneToken(
         userId: UserId = UserId.unique(),
         phone: String,
-    ): AppwriteResult<Token> = post(
-        path = "/account/tokens/phone",
-        params = mapOf("userId" to userId.raw, "phone" to phone),
-    )
+    ): AppwriteResult<Token> =
+        post(
+            path = "/account/tokens/phone",
+            params = mapOf("userId" to userId.raw, "phone" to phone),
+        )
 
     suspend fun createMagicUrlToken(
         userId: UserId = UserId.unique(),
         email: String,
         url: String? = null,
         phrase: Boolean? = null,
-    ): AppwriteResult<Token> = post(
-        path = "/account/tokens/magic-url",
-        params = buildMap {
-            put("userId", userId.raw)
-            put("email", email)
-            if (url != null) put("url", url)
-            if (phrase != null) put("phrase", phrase)
-        },
-    )
+    ): AppwriteResult<Token> =
+        post(
+            path = "/account/tokens/magic-url",
+            params =
+                buildMap {
+                    put("userId", userId.raw)
+                    put("email", email)
+                    if (url != null) put("url", url)
+                    if (phrase != null) put("phrase", phrase)
+                },
+        )
 
     suspend fun createSession(
         userId: UserId,
         secret: String,
-    ): AppwriteResult<Session> = post(
-        path = "/account/sessions/token",
-        params = mapOf("userId" to userId.raw, "secret" to secret),
-    )
+    ): AppwriteResult<Session> =
+        post(
+            path = "/account/sessions/token",
+            params = mapOf("userId" to userId.raw, "secret" to secret),
+        )
 
     // ── Sessions ─────────────────────────────────────────────
 
@@ -130,29 +148,33 @@ class Auth(appwrite: Appwrite) : ServiceBase(appwrite.transport) {
     suspend fun updateEmail(
         email: String,
         password: String,
-    ): AppwriteResult<User> = patch(
-        path = "/account/email",
-        params = mapOf("email" to email, "password" to password),
-    )
+    ): AppwriteResult<User> =
+        patch(
+            path = "/account/email",
+            params = mapOf("email" to email, "password" to password),
+        )
 
     suspend fun updatePassword(
         password: String,
         oldPassword: String? = null,
-    ): AppwriteResult<User> = patch(
-        path = "/account/password",
-        params = buildMap {
-            put("password", password)
-            if (oldPassword != null) put("oldPassword", oldPassword)
-        },
-    )
+    ): AppwriteResult<User> =
+        patch(
+            path = "/account/password",
+            params =
+                buildMap {
+                    put("password", password)
+                    if (oldPassword != null) put("oldPassword", oldPassword)
+                },
+        )
 
     suspend fun updatePhone(
         phone: String,
         password: String,
-    ): AppwriteResult<User> = patch(
-        path = "/account/phone",
-        params = mapOf("phone" to phone, "password" to password),
-    )
+    ): AppwriteResult<User> =
+        patch(
+            path = "/account/phone",
+            params = mapOf("phone" to phone, "password" to password),
+        )
 
     suspend fun updateStatus(): AppwriteResult<User> =
         patch(path = "/account/status")
@@ -164,21 +186,24 @@ class Auth(appwrite: Appwrite) : ServiceBase(appwrite.transport) {
 
     suspend fun updatePrefs(
         prefs: Map<String, String>,
-    ): AppwriteResult<User> = patch(
-        path = "/account/prefs",
-        params = mapOf("prefs" to prefs),
-    )
+    ): AppwriteResult<User> =
+        patch(
+            path = "/account/prefs",
+            params = mapOf("prefs" to prefs),
+        )
 
     // ── Identity ─────────────────────────────────────────────
 
     suspend fun listIdentities(
         queries: List<String>? = null,
-    ): AppwriteResult<IdentityList> = get(
-        path = "/account/identities",
-        params = buildMap {
-            if (queries != null) put("queries", queries)
-        },
-    )
+    ): AppwriteResult<IdentityList> =
+        get(
+            path = "/account/identities",
+            params =
+                buildMap {
+                    if (queries != null) put("queries", queries)
+                },
+        )
 
     suspend fun deleteIdentity(
         identityId: String,
@@ -193,12 +218,14 @@ class Auth(appwrite: Appwrite) : ServiceBase(appwrite.transport) {
 
     suspend fun listLogs(
         queries: List<String>? = null,
-    ): AppwriteResult<LogList> = get(
-        path = "/account/logs",
-        params = buildMap {
-            if (queries != null) put("queries", queries)
-        },
-    )
+    ): AppwriteResult<LogList> =
+        get(
+            path = "/account/logs",
+            params =
+                buildMap {
+                    if (queries != null) put("queries", queries)
+                },
+        )
 
     // ── Push Targets ─────────────────────────────────────────
 
@@ -206,22 +233,25 @@ class Auth(appwrite: Appwrite) : ServiceBase(appwrite.transport) {
         targetId: TargetId = TargetId.unique(),
         identifier: String,
         providerId: String? = null,
-    ): AppwriteResult<Target> = post(
-        path = "/account/targets",
-        params = buildMap {
-            put("targetId", targetId.raw)
-            put("identifier", identifier)
-            if (providerId != null) put("providerId", providerId)
-        },
-    )
+    ): AppwriteResult<Target> =
+        post(
+            path = "/account/targets",
+            params =
+                buildMap {
+                    put("targetId", targetId.raw)
+                    put("identifier", identifier)
+                    if (providerId != null) put("providerId", providerId)
+                },
+        )
 
     suspend fun updatePushTarget(
         targetId: TargetId,
         identifier: String,
-    ): AppwriteResult<Target> = put(
-        path = "/account/targets/${targetId.raw}",
-        params = mapOf("identifier" to identifier),
-    )
+    ): AppwriteResult<Target> =
+        put(
+            path = "/account/targets/${targetId.raw}",
+            params = mapOf("identifier" to identifier),
+        )
 
     suspend fun deletePushTarget(
         targetId: TargetId,

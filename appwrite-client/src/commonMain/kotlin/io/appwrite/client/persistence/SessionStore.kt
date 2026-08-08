@@ -8,7 +8,10 @@ package io.appwrite.client.persistence
  */
 expect class SessionStore() {
     fun save(key: String, value: String)
+
     fun load(key: String): String?
+
     fun remove(key: String)
+
     fun clear()
 }

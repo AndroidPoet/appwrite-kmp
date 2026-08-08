@@ -24,7 +24,13 @@ data class Execution(
 )
 
 @Serializable
-data class ExecutionHeader(val name: String, val value: String)
+data class ExecutionHeader(
+    val name: String,
+    val value: String,
+)
 
 @Serializable
-data class ExecutionList(val total: Int, val executions: List<Execution>)
+data class ExecutionList(
+    val total: Int,
+    val executions: List<Execution>,
+)

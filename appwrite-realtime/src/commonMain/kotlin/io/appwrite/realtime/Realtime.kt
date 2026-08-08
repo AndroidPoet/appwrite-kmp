@@ -37,13 +37,15 @@ import kotlinx.serialization.json.Json
  *     .collect { event -> handleEvent(event) }
  * ```
  */
-class Realtime(private val appwrite: Appwrite) {
-
-    private val json = Json {
-        ignoreUnknownKeys = true
-        isLenient = true
-        coerceInputValues = true
-    }
+class Realtime(
+    private val appwrite: Appwrite,
+) {
+    private val json =
+        Json {
+            ignoreUnknownKeys = true
+            isLenient = true
+            coerceInputValues = true
+        }
 
     // ── Public API ───────────────────────────────────────────────────
 
@@ -54,67 +56,69 @@ class Realtime(private val appwrite: Appwrite) {
      * collection starts and closed when the collector cancels. Automatic
      * reconnection with exponential back-off is built in.
      */
-    fun subscribe(vararg channels: String): Flow<RealtimeEvent> = callbackFlow {
-        require(channels.isNotEmpty()) { "At least one channel is required" }
+    fun subscribe(vararg channels: String): Flow<RealtimeEvent> =
+        callbackFlow {
+            require(channels.isNotEmpty()) { "At least one channel is required" }
 
-        val client = HttpClient { install(WebSockets) }
-        val wsUrl = buildWsUrl(channels.toList())
+            val client = HttpClient { install(WebSockets) }
+            val wsUrl = buildWsUrl(channels.toList())
 
-        var backoff = INITIAL_BACKOFF_MS
-        var fatal: RealtimeException? = null
+            var backoff = INITIAL_BACKOFF_MS
+            var fatal: RealtimeException? = null
 
-        try {
-            while (isActive && fatal == null) {
-                try {
-                    client.webSocket(wsUrl) {
-                        // Connection succeeded — reset back-off.
-                        backoff = INITIAL_BACKOFF_MS
+            try {
+                while (isActive && fatal == null) {
+                    try {
+                        client.webSocket(wsUrl) {
+                            // Connection succeeded — reset back-off.
+                            backoff = INITIAL_BACKOFF_MS
 
-                        // Heartbeat: send ping every 20 seconds.
-                        val heartbeat = launch {
-                            while (isActive) {
-                                delay(HEARTBEAT_INTERVAL_MS)
-                                send(Frame.Text("""{"type":"ping"}"""))
-                            }
-                        }
-
-                        try {
-                            for (frame in incoming) {
-                                if (frame is Frame.Text) {
-                                    handleFrame(frame.readText())?.let { event ->
-                                        trySend(event)
+                            // Heartbeat: send ping every 20 seconds.
+                            val heartbeat =
+                                launch {
+                                    while (isActive) {
+                                        delay(HEARTBEAT_INTERVAL_MS)
+                                        send(Frame.Text("""{"type":"ping"}"""))
                                     }
                                 }
+
+                            try {
+                                for (frame in incoming) {
+                                    if (frame is Frame.Text) {
+                                        handleFrame(frame.readText())?.let { event ->
+                                            trySend(event)
+                                        }
+                                    }
+                                }
+                            } catch (e: RealtimeException) {
+                                // Server-reported error (bad channel, unauthorized) —
+                                // surface to the collector and stop reconnecting.
+                                fatal = e
+                                return@webSocket
+                            } finally {
+                                heartbeat.cancel()
                             }
-                        } catch (e: RealtimeException) {
-                            // Server-reported error (bad channel, unauthorized) —
-                            // surface to the collector and stop reconnecting.
-                            fatal = e
-                            return@webSocket
-                        } finally {
-                            heartbeat.cancel()
                         }
+                        // Server closed the connection gracefully — reconnect.
+                    } catch (_: CancellationException) {
+                        throw CancellationException("Flow cancelled")
+                    } catch (_: Exception) {
+                        // Connection failed or dropped — back off and retry.
                     }
-                    // Server closed the connection gracefully — reconnect.
-                } catch (_: CancellationException) {
-                    throw CancellationException("Flow cancelled")
-                } catch (_: Exception) {
-                    // Connection failed or dropped — back off and retry.
+
+                    if (!isActive || fatal != null) break
+                    delay(backoff)
+                    backoff = (backoff * 2).coerceAtMost(MAX_BACKOFF_MS)
                 }
-
-                if (!isActive || fatal != null) break
-                delay(backoff)
-                backoff = (backoff * 2).coerceAtMost(MAX_BACKOFF_MS)
+            } finally {
+                client.close()
             }
-        } finally {
-            client.close()
+
+            // Close the flow: surface a server error, or complete normally on cancel.
+            close(fatal)
+
+            awaitClose { client.close() }
         }
-
-        // Close the flow: surface a server error, or complete normally on cancel.
-        close(fatal)
-
-        awaitClose { client.close() }
-    }
 
     /** Subscribe to document changes in a collection. */
     fun documents(
@@ -150,16 +154,18 @@ class Realtime(private val appwrite: Appwrite) {
      */
     private fun buildWsUrl(channels: List<String>): String {
         val endpoint = appwrite.config.endpoint.trimEnd('/')
-        val wsBase = endpoint
-            .replace("https://", "wss://")
-            .replace("http://", "ws://")
+        val wsBase =
+            endpoint
+                .replace("https://", "wss://")
+                .replace("http://", "ws://")
 
-        val params = buildString {
-            append("project=${appwrite.config.projectId.raw}")
-            channels.forEach { ch ->
-                append("&channels[]=$ch")
+        val params =
+            buildString {
+                append("project=${appwrite.config.projectId.raw}")
+                channels.forEach { ch ->
+                    append("&channels[]=$ch")
+                }
             }
-        }
 
         return "$wsBase/realtime?$params"
     }
@@ -170,21 +176,24 @@ class Realtime(private val appwrite: Appwrite) {
      * messages. Throws [RealtimeException] for `"error"` messages.
      */
     private fun handleFrame(text: String): RealtimeEvent? {
-        val message = try {
-            json.decodeFromString<RealtimeMessage>(text)
-        } catch (_: Exception) {
-            // Unrecognised payload — ignore rather than tear down the stream.
-            return null
-        }
+        val message =
+            try {
+                json.decodeFromString<RealtimeMessage>(text)
+            } catch (_: Exception) {
+                // Unrecognised payload — ignore rather than tear down the stream.
+                return null
+            }
         return when (message.type) {
-            "event" -> runCatching {
-                json.decodeFromString(RealtimeEvent.serializer(), message.data.toString())
-            }.getOrNull()
+            "event" ->
+                runCatching {
+                    json.decodeFromString(RealtimeEvent.serializer(), message.data.toString())
+                }.getOrNull()
 
             "error" -> {
-                val error = runCatching {
-                    json.decodeFromString(RealtimeErrorData.serializer(), message.data.toString())
-                }.getOrNull()
+                val error =
+                    runCatching {
+                        json.decodeFromString(RealtimeErrorData.serializer(), message.data.toString())
+                    }.getOrNull()
                 throw RealtimeException(
                     code = error?.code ?: 0,
                     message = error?.message ?: "Realtime connection error",

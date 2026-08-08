@@ -1,0 +1,47 @@
+---
+title: Appwrite KMP
+description: A Kotlin Multiplatform SDK for Appwrite — errors-as-values, typed IDs, a query DSL and Flow-based realtime across Android, iOS, JVM and Wasm.
+---
+
+import { Hero } from '../components/Hero'
+import { Cards } from 'nextra/components'
+
+<Hero />
+
+**Appwrite KMP** is a Kotlin Multiplatform SDK for [Appwrite](https://appwrite.io), built
+from scratch for KMP rather than wrapping an Android-only client. You configure one
+`Appwrite` instance in `commonMain` and call the same typed services on every target.
+
+```kotlin
+val appwrite = Appwrite("my-project-id") {
+    endpoint = "https://cloud.appwrite.io/v1"
+    logging = true
+}
+
+when (val result = appwrite.auth.signInWithEmail("user@example.com", "secret")) {
+    is AppwriteResult.Success -> println("Session: ${result.data.id}")
+    is AppwriteResult.Failure -> showError(result.error.message)
+}
+```
+
+## Why Appwrite KMP
+
+- **Errors as values.** Every call returns a sealed `AppwriteResult<T>` you exhaustively
+  `when` over — no exceptions thrown for ordinary failure paths.
+- **Typed IDs.** `DatabaseId`, `CollectionId`, `FileId`, `TeamId` — the compiler stops you
+  passing one where another belongs.
+- **Query DSL.** `where("age" greaterThan 18)` instead of hand-built query strings.
+- **Flow-based realtime.** Subscriptions are coroutine `Flow`s with auto-reconnect and
+  scope-bound cleanup.
+- **Modular.** Depend only on the services you use; everything shares one `appwrite-core`.
+
+## Explore the docs
+
+<Cards>
+  <Cards.Card title="Getting Started" href="/getting-started" arrow />
+  <Cards.Card title="Usage" href="/usage" arrow />
+  <Cards.Card title="Results & Errors" href="/results-and-errors" arrow />
+  <Cards.Card title="Modules" href="/modules" arrow />
+  <Cards.Card title="Platforms" href="/platforms" arrow />
+  <Cards.Card title="Realtime" href="/realtime" arrow />
+</Cards>
